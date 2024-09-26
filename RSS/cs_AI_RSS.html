@@ -1,0 +1,62 @@
+<!-- This is the HTML code for the list of notes -->
+
+<html>
+<head>
+  <title>arXiv RSS Feed</title>
+</head>
+<body>
+  <h1>Latest arXiv Papers in Computer Science: Artificial Intelligence</h1>
+	<div id="output"></div>
+
+	<script>
+        const proxyUrl = 'https://cors-anywhere.herokuapp.com/'; // Proxy URL for bypassing CORS
+        const targetUrl = 'https://rss.arxiv.org/rss/cs.AI'; // arXiv RSS feed URL
+
+        // Fetch the XML file
+        fetch(proxyUrl + targetUrl)
+            .then(response => response.text())  // Convert the XML response to text
+            .then(xmlString => {
+                const xmlDoc = parseXML(xmlString); // Parse the XML
+                displayItems(xmlDoc);  // Display the parsed items
+            })
+            .catch(error => console.error('Error fetching XML:', error));  // Handle any errors
+
+        // Function to parse XML string into a DOM Document
+        function parseXML(xmlText) {
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(xmlText, "application/xml");
+            return xmlDoc;
+        }
+
+        // Function to display the parsed XML items in the HTML
+        function displayItems(xmlDoc) {
+            const items = xmlDoc.getElementsByTagName('item');  // Fetch all <item> elements
+            let output = '';
+
+            // Loop through the items and format them for display
+            for (let i = 0; i < items.length; i++) {
+                const title = items[i].getElementsByTagName('title')[0].textContent;
+                const link = items[i].getElementsByTagName('link')[0].textContent;
+                const description = items[i].getElementsByTagName('description')[0].textContent;
+                const pubDate = items[i].getElementsByTagName('pubDate')[0].textContent;
+								const category = items[i].getElementsByTagName('category')[0].textContent;
+								const abstract = description.split("Abstract:")[1]?.trim() || "No abstract available";
+
+                // Handle namespaces for dc:creator
+                const creators = Array.from(items[i].getElementsByTagNameNS('http://purl.org/dc/elements/1.1/', 'creator')).map(creator => creator.textContent).join(', ');
+
+                // Format the output
+                output += `<div class="item">`;
+                output += `<h2><a href="${link}">${title}</a></h2>`;
+                output += `<p><strong>Authors:</strong> ${creators}</p>`;
+                output += `<p><strong>Abstract:</strong> ${abstract}</p>`;
+                output += `</div>`;
+            }
+
+            // Insert the formatted output into the DOM
+            document.getElementById('output').innerHTML = output;
+        }
+
+    </script>
+</body>
+</html>
